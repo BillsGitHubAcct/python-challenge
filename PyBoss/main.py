@@ -1,8 +1,6 @@
-def cmp(a, b):  # compare list a and list b and return 0 if they are equal
-    return (a > b) - (a < b)
-
 
 def ssn_hide_5_char(string_var):
+    """ Function returns SSN with first 5 number blanked out  """
     i = 0
     new_string = ""
     for char in string_var:
@@ -14,6 +12,7 @@ def ssn_hide_5_char(string_var):
 
 
 def reformat_date(date_str):
+    """ Function reformats date from yyyy-mm-dd to dd/mm/yyyy """
     if len(date_str[-2:]) == 1:
         date_str[-2] = '0' + date_str[-2:]
     if len(date_str[5:7]) == 1:
@@ -22,61 +21,61 @@ def reformat_date(date_str):
 
 import os
 import csv
-import operator
 import us_states_abbrev
-
-
-csv_path = os.path.join('Resources', 'employee_data1.csv')
-out_path = os.path.join('Resources', 'fmtted_emp_data1.csv')
-
-saveRow = []
-# ------------------------------------
-# Create new file having unique rows 
-# ------------------------------------
-with open(csv_path, newline='') as csvfile:
-    csvreader = csv.reader(csvfile, delimiter=',')  # Read csv
-    out = csv.writer(open(out_path, "w", newline=''), delimiter=',', quoting=csv.QUOTE_ALL)
-    row_count = 0
-    for row in csvreader:
-        if row_count > 0:
-            ssn_value = row[3]
-            row[3] = ssn_hide_5_char(ssn_value)
-            date = row[2]
-            row[2] = reformat_date(date)
-            row[4] = us_state_abbrev[row[4]]
-            
-        out.writerow(row)
-        row_count +=1
-
-dupCount = 0
-partialDupCount = 0
-# --------------------------------------------
-# Lookup title in unique row file 
-# ---------------------------------------------
-# saveRow = []
-# firstRow = True
-# titleFound = False
-# with open(out_path,newline='') as uniquecsvfile:
-# 	uniquecsvreader = csv.reader(uniquecsvfile, delimiter=',') # Read unique csv
-# 	outreader = csv.reader(uniquecsvfile, delimiter=',') # Read csv
-# 	titleRequest = input("What show do you want to look up? ")
-# 	for row in outreader:
-# 		if titleRequest == row[0]:
-# 			titleFound = True
-# 			if firstRow:
-# 				printLine = row[0] + " is rated " + row[1] + " with a rating of " + row[3]
-# 				saveRow = row
-# 				firstRow = False
-# 			else:
-# 				if cmp(row,saveRow) == 0:
-# 					dupCount += 1  # This can't happen now since dups are removed
-# 				else:
-# 					partialDupCount +=1
 #
-# 		else:
-# 			if titleFound:
-# 				print(printLine + " (full dups: -->" + str(dupCount)  + " partial dups: -->" + str(partialDupCount) + ")")
-# 				break
+#   PYBoss program 1. prompts the user for the number of data files to process
+#                  2. formats the data files to fmtted data files until the next data file doesn't exist
+#                     and/or the number of files to process has been reached
 #
-# 	if not titleFound:
-# 		print(titleRequest + " was Not Found")
+new_row = []
+print("----------------------------------------------------------------------")
+file_number = int(input("Enter number of employee data files to reformat -->"))
+print("----------------------------------------------------------------------")
+file_count = 1
+csv_path = os.path.join('Resources', 'employee_data' + str(file_count) + '.csv')
+out_path = os.path.join('Resources', 'fmtted_emp_data' + str(file_count) + '.csv')
+# While data files exist and count less or equal the user specified number of data files
+while os.path.exists(csv_path) and file_count <= file_number:
+    # ------------------------------------
+    # Create new csv file(s) having new and reformatted rows
+    # ------------------------------------
+    with open(csv_path, newline='') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',')  # Read csv
+        out = csv.writer(open(out_path, "w", newline=''), delimiter=',', quoting=csv.QUOTE_ALL)
+
+        header_row = True
+        for row in csvreader:
+            if row[0] != " ":
+                if not header_row:
+                    # reformat detail row and write it to formatted file
+                    new_row.append(row[0])
+                    names = row[1].split( )
+                    new_row.append(names[0])
+                    new_row.append(names[1])
+                    date = row[2]
+                    new_row.append(reformat_date(date))
+                    ssn_value = row[3]
+                    new_row.append(ssn_hide_5_char(ssn_value))
+                    new_row.append(us_states_abbrev.us_state_abbrev[row[4]])
+                    out.writerow(new_row)
+                    new_row = []
+                else:
+                    # insert new column headers and write header to formatted file
+                    new_row.append(row[0])
+                    new_row.append("First Name")
+                    new_row.append("Last Name")
+                    new_row.append(row[2])
+                    new_row.append(row[3])
+                    new_row.append(row[4])
+                    out.writerow(new_row)
+                    new_row = []
+                    header_row = False
+
+    print("---> Data file processed: " + csv_path)
+    print("---> Formatted file created: " + out_path)
+    print("--------------------------------------------")
+    file_count += 1
+    # set path to next data file
+    csv_path = os.path.join('Resources', 'employee_data' + str(file_count) + '.csv')
+    out_path = os.path.join('Resources', 'fmtted_emp_data' + str(file_count) + '.csv')
+
