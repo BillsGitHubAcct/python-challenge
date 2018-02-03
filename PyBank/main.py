@@ -1,107 +1,85 @@
 import os
+import numpy as np
+import pandas as pd
 import csv
-import operator
+convert_month = {"Jan":"01","Feb":"02","Mar":"03","Apr":"04","May":"05","Jun":"06","Jul":"07","Aug":"08","Sep":"09","Oct":"10","Nov":"11","Dec":"12"}
+#print(convert_month["Jan"])
+wrk_path = os.path.join("Resources","work_data.csv")
+csv_path = os.path.join("Resources","budget_data_1.csv")
+rpt_path = os.path.join("Save-Reports","budget_data_1_report.txt")
 
-def cmp(a,b):   # function compares list a and list b and returns 0 if equal
-	return (a>b)-(a<b)
-	
+new_row = []
+row_count = 0
+# The following code writes to a work file after converting date to a number
+# and putting it in a column so it can be part of the sort later on
+with open(csv_path, newline='') as csvfile:
+    csvreader = csv.reader(csvfile, delimiter=',')
+    with open(wrk_path, "w",newline='') as outfile:
+        csvwriter = csv.writer(outfile, delimiter=',')
+        for row in csvreader:
+            if row_count > 0:
+                monthpt = str(row[0]).split("-")
+                new_row.append(convert_month[monthpt[0]])
+                new_row.append(row[0])
+                new_row.append(row[1])
+                csvwriter.writerow(new_row)
+                new_row = []
+            else:
+                new_row.append("NumMth")
+                new_row.append(row[0])
+                new_row.append(row[1])
+                csvwriter.writerow(new_row)
+                new_row = []
+            row_count +=1
+# Mow read work file in pandas fpr doing the data analysis
+df = pd.read_csv(wrk_path)
+unique_months = df["NumMth"].unique()
+print(unique_months)
+print(len(unique_months))
+total = df["Revenue"].sum()
+print(total)
+count_days = df["Date"].count()
+print(count_days)
+avg_rev_change = total/len(unique_months)
+print(avg_rev_change)
+#  Instantiate a sorted Dataframe on month number and date columns
+sorted_df=df.sort_values(["NumMth","Date"])
+print(sorted_df)
+
+# Following code gets max revenue increase and max revenue decrease between days
+
+prev_revenue = 0
+max_rev_increase = 0
+max_rev_increase_date = ""
+max_rev_decrease = 0
+max_rev_decrease_date = ""
+revenue_change  = 0
+
+# Loop through sorted Dataframe and accumulate max values
+first_row = True
+for index, row in sorted_df.iterrows() :
+    if not first_row:
+        revenue_change = row['Revenue'] - prev_revenue
+        if revenue_change > max_rev_increase:
+            max_rev_increase = revenue_change
+            max_rev_increase_date = row['Date']
+        if revenue_change < max_rev_decrease:
+            max_rev_decrease = revenue_change
+            max_rev_decrease_date = row['Date']
+    else:
+        first_row = False
+    prev_revenue = row['Revenue']
+
+#  Output totals to report
+fina_report = "-------------------------------\n"              \
+            + 'Total Months: ' + str(len(unique_months))+"\n"   \
+             + "Total Revenue: ${:0,.0f}".format(total) +"\n"   \
+            + "Average Revenue Change: ${:0,.0f}".format(avg_rev_change) +"\n" \
+            + "Greatest Increase in Revenue: {} (${:0,.0f})".format(max_rev_increase_date,max_rev_increase) +"\n" \
+            + "Greatest Decrease in Revenue: {} (${:0,.0f})".format(max_rev_decrease_date,max_rev_decrease)
+
+print(fina_report)
 
 
-continueProcessing = {"y":True,"yes":True,"n":False,"no":False}
-print(continueProcessing["y"])
-contProcessing = "y"
-totalMonths = 0
-totalRevenue = 0.00
-avgRevenueChg = 0.00
-greatestIncrease = 0.00
-greatestDecrease = 0.00
 
-# mainLoop
-count = 0
-while (count < 9): 
-	fileList = []
-	print("------------------------------------------------")
-	# Display files in resources to select from
-	for index, file in enumerate(os.listdir('Resources')):
-		print(index+1,file)
-		fileList.append(file)
-	print("------------------------------------------------")
-	# Prompt for user's file number
-	fileSelect = int(input("Please enter the # of dataset file to process -->"))
-	print("------------------------------------------------")    
-	csvpath = os.path.join('Resources',fileList[fileSelect-1])
-	
-	if os.path.exists(csvpath):
-		with open(csvpath,newline='') as csvfile:
-			csvreader = csv.reader(csvfile, delimiter=',')
-			next(csvreader) #skip Header
-			#sortedList = sorted(csvreader, key=operator.itemgetter(0), reverse=False) #Sort by Date 
-			firstMth = True
-			#for row in sortedList: # Read row from Sorted collection
-			for row in csvreader:
-				dtString = str(row[0])
-				print("dtString is " + dtString)
-				month = dtString[0:3]
-				print("month is " + month)
-								
-	count = 10				
-					
-	
-#Loop while continueProcessing = 'Y'
-#Prompt user for which data set to process (found in Resources directory)
-#Check if data set exists
-#if data set exists then read and process data set
-#if data set not found then send message saying data set not found 
-#Prompt user to continue Y/N setting continueProcessing 
-#End Loop
- 
-#
-csvpath = os.path.join('Resources','budget_data_1')
-#outpath = os.path.join('Resources','unique_netflix_ratings.csv')
 
-saveRow = []
-# ------------------------------------
-# Create new file having unique rows 
-# ------------------------------------
-# if not(os.path.exists(outpath)): 
-	# with open(csvpath,newline='') as csvfile:
-		# csvreader = csv.reader(csvfile, delimiter=',') # Read csv
-		# # Sort csv by title so we can skip duplicates based on Title
-		# sortedList = sorted(csvreader, key=operator.itemgetter(0), reverse=False)
-		# out = csv.writer(open(outpath,"w",newline=''), delimiter=',',quoting=csv.QUOTE_ALL)
-		# for row in sortedList:
-			# if cmp(row,saveRow) != 0:
-				# out.writerow(row) #write unique row to excel 
-			# saveRow = row
-# dupCount = 0
-# partialDupCount = 0
-# # --------------------------------------------
-# # Lookup title in unique row file 
-# ----------------------------------------------
-# saveRow = []
-# firstRow = True
-# titleFound = False 
-# with open(outpath,newline='') as uniquecsvfile:
-	# uniquecsvreader = csv.reader(uniquecsvfile, delimiter=',') # Read unique csv
-	# outreader = csv.reader(uniquecsvfile, delimiter=',') # Read csv
-	# titleRequest = input("What show do you want to look up? ")		
-	# for row in outreader:
-		# if titleRequest == row[0]:
-			# titleFound = True
-			# if firstRow:
-				# printLine = row[0] + " is rated " + row[1] + " with a rating of " + row[3]
-				# saveRow = row
-				# firstRow = False
-			# else:
-				# if cmp(row,saveRow) == 0:
-					# dupCount += 1  # This can't happen now since dups are removed 
-				# else:
-					# partialDupCount +=1
-					
-		# else:
-			# if titleFound:
-				# print(printLine + " (full dups: -->" + str(dupCount)  + " partial dups: -->" + str(partialDupCount) + ")")
-				# break
-				
-	# if not titleFound:
-		# print(titleRequest + " was Not Found")
