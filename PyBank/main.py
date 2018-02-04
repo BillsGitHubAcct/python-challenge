@@ -1,9 +1,12 @@
 import os
 import pandas as pd
 import csv
-CONVERT_MONTH = {"Jan":"01","Feb":"02","Mar":"03","Apr":"04","May":"05","Jun":"06","Jul":"07","Aug":"08","Sep":"09","Oct":"10","Nov":"11","Dec":"12"}
+CONVERT_MONTH = {"Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
+                 "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"}
 continue_proc = "y"
-continue_processing = {"y":True,"yes":True,"n":False,"no":False}
+continue_processing = {"y": True, "yes": True, "n": False, "no": False}
+asterisk_list = []
+asterisk = ""
 # Main loop
 while continue_processing[continue_proc]:
     file_list = []
@@ -13,7 +16,10 @@ while continue_processing[continue_proc]:
     for index, file in enumerate(os.listdir('Resources')):
         file_list.append(file)
         index_list.append(index)
-        print(str(index + 1) + " " + file)
+        asterisk_list.append(asterisk)
+        print(str(index + 1) + " " + file + asterisk_list[index])
+    if "*" in asterisk_list:
+        print("*processed")
     print("------------------------------------------------")
     # Prompt for file number
     file_select = int(input("Please enter the # of budget file to process -->"))
@@ -25,7 +31,8 @@ while continue_processing[continue_proc]:
     rpt_list_string = str(file_list[file_select - 1])[:-4]
     rpt_txt_file = rpt_list_string + "_report.txt"
     rpt_path = os.path.join("Save-Reports", rpt_txt_file)
-
+    print("\nYou chose: " + file_list[file_select - 1])
+    asterisk_list[file_select - 1] = "*"
     new_row = []
     header = 1
     # Read from budget csv and to work csv file including new columns for sorting on later
@@ -96,7 +103,8 @@ while continue_processing[continue_proc]:
     # write it to text file
     with open(rpt_path, "wt") as out_file:
         out_file.write(fina_report)
+    print("\nSummary written to: " + rpt_path)
     # prompt to continue
-    continue_proc = input("\nChoose Another File? y/n -->")
+    continue_proc = input("\nChoose Another File? y/n -->").lower()
     while continue_proc not in continue_processing:
-        continue_proc = input('  "' + str(continue_proc) + '" is not valid.... try again -->')
+        continue_proc = input('  "' + str(continue_proc) + '" is not valid.... try again -->').lower()
