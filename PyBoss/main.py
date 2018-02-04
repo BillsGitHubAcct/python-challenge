@@ -79,4 +79,3 @@ while os.path.exists(csv_path) and file_count <= file_number:
     row_counter = 0
     csv_path = os.path.join('Resources', 'employee_data' + str(file_count) + '.csv')
     out_path = os.path.join('Resources', 'fmtted_emp_data' + str(file_count) + '.csv')
-
